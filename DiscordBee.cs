@@ -4,6 +4,7 @@ namespace MusicBeePlugin
   using MusicBeePlugin.DiscordTools;
   using MusicBeePlugin.DiscordTools.Assets;
   using MusicBeePlugin.DiscordTools.Assets.Uploader;
+  using MusicBeePlugin.S3Client;
   using MusicBeePlugin.UI;
   using System;
   using System.Collections.Generic;
@@ -31,6 +32,7 @@ namespace MusicBeePlugin
     private readonly Timer _updateTimer = new Timer(300);
     private string _imgurAssetCachePath;
     private string _imgurAlbum;
+    private string _s3AssetCachePath;
 
     public Plugin()
     {
@@ -80,13 +82,32 @@ namespace MusicBeePlugin
       var settingsFilePath = $"{workingDir}\\{_about.Name}.settings";
       _imgurAssetCachePath = $"{workingDir}\\{_about.Name}-Imgur.cache";
       _imgurAlbum = $"{workingDir}\\{_about.Name}-Imgur.album";
+      _s3AssetCachePath = $"{workingDir}\\{_about.Name}-S3.cache";
 
       _settings = Settings.GetInstance(settingsFilePath);
       _settings.SettingChanged += SettingChangedCallback;
 
       _discordClient.ArtworkUploadEnabled = _settings.UploadArtwork;
       _discordClient.DiscordId = _settings.DiscordAppId;
-      UpdateAssetManager(_imgurAssetCachePath, new ImgurUploader(_imgurAlbum, _settings.ImgurClientId));
+
+      switch (_settings.ArtworkUploader)
+      {
+        case "Imgur":
+          UpdateAssetManager(_imgurAssetCachePath, new ImgurUploader(_imgurAlbum, _settings.ImgurClientId));
+          break;
+        case "Amazon S3":
+          UpdateAssetManager(_s3AssetCachePath, new S3Uploader(new S3Config
+          {
+            AccessKeyId = _settings.S3AccessKeyId,
+            SecretAccessKey = _settings.S3SecretAccessKey,
+            Endpoint = _settings.S3Endpoint,
+            BucketName = _settings.S3BucketName,
+            Prefix = _settings.S3Prefix,
+            CustomDomain = _settings.S3CustomDomain
+          }));
+          break;
+      }
+      
       ToolStripMenuItem mainMenuItem = (ToolStripMenuItem)_mbApiInterface.MB_AddMenuItem($"mnuTools/{_about.Name}", null, null);
       mainMenuItem.DropDown.Items.Add("Uploader Health", null, ShowUploaderHealth);
 
@@ -138,9 +159,29 @@ namespace MusicBeePlugin
       {
         _discordClient.ArtworkUploadEnabled = _settings.UploadArtwork;
       }
-      if (e.SettingProperty.Equals("ImgurClientId"))
+      if (_settings.ArtworkUploader.Equals("Imgur") && e.SettingProperty.Equals("ImgurClientId"))
       {
         UpdateAssetManager(_imgurAssetCachePath, new ImgurUploader(_imgurAlbum, _settings.ImgurClientId));
+      }
+      if (_settings.ArtworkUploader.Equals("Amazon S3"))
+      {
+        if (e.SettingProperty.Equals("S3AccessKeyId") ||
+          e.SettingProperty.Equals("S3SecretAccessKey") ||
+          e.SettingProperty.Equals("S3Endpoint") ||
+          e.SettingProperty.Equals("S3BucketName") ||
+          e.SettingProperty.Equals("S3Prefix") ||
+          e.SettingProperty.Equals("S3CustomDomain"))
+        {
+          UpdateAssetManager(_s3AssetCachePath, new S3Uploader(new S3Config
+          {
+            AccessKeyId = _settings.S3AccessKeyId,
+            SecretAccessKey = _settings.S3SecretAccessKey,
+            Endpoint = _settings.S3Endpoint,
+            BucketName = _settings.S3BucketName,
+            Prefix = _settings.S3Prefix,
+            CustomDomain = _settings.S3CustomDomain
+          }));
+        }
       }
     }
 

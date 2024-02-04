@@ -1,7 +1,9 @@
 namespace MusicBeePlugin.UI
 {
   using System;
+  using System.Collections.Generic;
   using System.Drawing;
+  using System.Linq;
   using System.Windows.Forms;
 
   public partial class SettingsWindow : Form
@@ -66,6 +68,7 @@ namespace MusicBeePlugin.UI
       checkBoxShowPlayState.Checked = settings.ShowPlayState;
       checkBoxShowOnlyNonPlayingState.Checked = settings.ShowOnlyNonPlayingState;
       checkBoxArtworkUpload.Checked = settings.UploadArtwork;
+      comboBoxArtworkUploader.SelectedIndex = comboBoxArtworkUploader.FindString(settings.ArtworkUploader);
       customButtonLabel.Text = settings.ButtonLabel;
       customButtonUrl.Text = settings.ButtonUrl;
       customButtonToggle.Checked = settings.ShowButton;
@@ -110,6 +113,7 @@ namespace MusicBeePlugin.UI
       _settings.ShowPlayState = checkBoxShowPlayState.Checked;
       _settings.ShowOnlyNonPlayingState = checkBoxShowOnlyNonPlayingState.Checked;
       _settings.UploadArtwork = checkBoxArtworkUpload.Checked;
+      _settings.ArtworkUploader = comboBoxArtworkUploader.SelectedItem.ToString();
       _settings.ButtonUrl = customButtonUrl.Text;
       _settings.ButtonLabel = customButtonLabel.Text;
       _settings.ShowButton = customButtonToggle.Checked;
@@ -124,7 +128,7 @@ namespace MusicBeePlugin.UI
       Hide();
     }
 
-    private bool ValidateInputs()
+    internal bool ValidateInputs()
     {
       bool ContainsDigitsOnly(string s)
       {
@@ -168,9 +172,41 @@ namespace MusicBeePlugin.UI
         return true;
       }
 
-      if (checkBoxArtworkUpload.Checked && textBoxImgurClientId.Text.Length > 0 && !validateImgurClientId())
+      bool validateS3()
       {
-        return false;
+        if (string.IsNullOrWhiteSpace(_settings.S3AccessKeyId) ||
+              string.IsNullOrWhiteSpace(_settings.S3SecretAccessKey) ||
+              string.IsNullOrWhiteSpace(_settings.S3BucketName))
+        {
+          buttonS3Settings.BackColor = Color.PaleVioletRed;
+          return false;
+        }
+        buttonS3Settings.BackColor = Color.White;
+        return true;
+      }
+
+      if (checkBoxArtworkUpload.Checked && comboBoxArtworkUploader.SelectedItem != null)
+      {
+        comboBoxArtworkUploader.BackColor = Color.White;
+
+        switch (comboBoxArtworkUploader.SelectedItem.ToString())
+        {
+          case "Imgur":
+            if (textBoxImgurClientId.Text.Length > 0 && !validateImgurClientId())
+            {
+              return false;
+            }
+            break;
+          case "Amazon S3":
+            if (!validateS3())
+            {
+              return false;
+            }
+            break;
+          default:
+            comboBoxArtworkUploader.BackColor = Color.PaleVioletRed;
+            return false;
+        }
       }
 
       bool validateUri()
@@ -199,6 +235,7 @@ namespace MusicBeePlugin.UI
     {
       textBoxDiscordAppId.BackColor = SystemColors.Window;
       textBoxImgurClientId.BackColor = SystemColors.Window;
+      buttonS3Settings.BackColor = SystemColors.Window;
       customButtonUrl.BackColor = Color.FromArgb(114, 137, 218);
     }
 
@@ -220,6 +257,30 @@ namespace MusicBeePlugin.UI
     private void textBoxImgurClientId_TextChanged(object sender, EventArgs e)
     {
       ValidateInputs();
+    }
+
+    private void comboBoxArtworkUploader_SelectedIndexChanged(object sender, EventArgs e)
+    {
+      ValidateInputs();
+
+      if (comboBoxArtworkUploader.SelectedIndex == comboBoxArtworkUploader.FindString("Amazon S3"))
+      {
+        labelImgurClientId.Visible = false;
+        textBoxImgurClientId.Visible = false;
+        buttonS3Settings.Visible = true;
+      }
+      else
+      {
+        labelImgurClientId.Visible = true;
+        textBoxImgurClientId.Visible = true;
+        buttonS3Settings.Visible = false;
+      }
+    }
+
+    private void buttonS3Settings_Click(object sender, EventArgs e)
+    {
+      var s3SettingsWindow = new S3SettingsWindow(_settings);
+      s3SettingsWindow.ShowDialog(this);
     }
   }
 }

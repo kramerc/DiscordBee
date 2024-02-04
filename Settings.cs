@@ -27,6 +27,13 @@ namespace MusicBeePlugin
       {"DiscordAppId", "409394531948298250"}, // prod
       //{"DiscordAppId", "408977077799354379"}, // dev
       {"ImgurClientId", "09bef4c058080cd"},
+      {"ArtworkUploader", "Imgur"},
+      {"S3AccessKeyId", ""},
+      {"S3SecretAccessKey", ""},
+      {"S3Endpoint", "s3.amazonaws.com"},
+      {"S3BucketName", ""},
+      {"S3Prefix", "DiscordBee"},
+      {"S3CustomDomain", ""},
     };
 
     public event EventHandler<SettingChangedEventArgs> SettingChanged;
@@ -123,6 +130,54 @@ namespace MusicBeePlugin
       }
     }
 
+    [DataMember] private string _s3AccessKeyId;
+
+    public string S3AccessKeyId
+    {
+      get => _s3AccessKeyId ?? defaults["S3AccessKeyId"];
+      set => SetIfChanged("_s3AccessKeyId", value);
+    }
+
+    [DataMember] private string _s3SecretAccessKey;
+
+    public string S3SecretAccessKey
+    {
+      get => _s3SecretAccessKey ?? defaults["S3SecretAccessKey"];
+      set => SetIfChanged("_s3SecretAccessKey", value);
+    }
+
+    [DataMember] private string _s3Endpoint;
+
+    public string S3Endpoint
+    {
+      get => _s3Endpoint ?? defaults["S3Endpoint"];
+      set => SetIfChanged("_s3Endpoint", value);
+    }
+
+    [DataMember] private string _s3BucketName;
+
+    public string S3BucketName
+    {
+      get => _s3BucketName ?? defaults["S3BucketName"];
+      set => SetIfChanged("_s3BucketName", value);
+    }
+
+    [DataMember] private string _s3Prefix;
+
+    public string S3Prefix
+    {
+      get => _s3Prefix ?? defaults["S3Prefix"];
+      set => SetIfChanged("_s3Prefix", value);
+    }
+
+    [DataMember] private string _s3CustomDomain;
+
+    public string S3CustomDomain
+    {
+      get => _s3CustomDomain ?? defaults["S3CustomDomain"];
+      set => SetIfChanged("_s3CustomDomain", value);
+    }
+
     [DataMember] private bool? _updatePresenceWhenStopped;
 
     public bool UpdatePresenceWhenStopped
@@ -177,6 +232,22 @@ namespace MusicBeePlugin
     {
       get => _uploadArtwork == true;
       set => SetIfChanged("_uploadArtwork", value);
+    }
+
+    [DataMember] private string _artworkUploader;
+
+    public string ArtworkUploader
+    {
+      get => _artworkUploader ?? defaults["ArtworkUploader"];
+      set
+      {
+        if (value?.Equals(defaults["ArtworkUploader"]) == true)
+        {
+          _artworkUploader = null;
+          return;
+        }
+        SetIfChanged("_artworkUploader", value);
+      }
     }
 
     [DataMember] private string _buttonLabel;

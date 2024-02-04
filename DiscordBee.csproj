@@ -96,6 +96,7 @@
     <Compile Include="DiscordTools\Assets\UploaderHealthInfo.cs" />
     <Compile Include="DiscordTools\Assets\Uploader\CachingUploader.cs" />
     <Compile Include="DiscordTools\Assets\Uploader\DelegatingUploader.cs" />
+    <Compile Include="DiscordTools\Assets\Uploader\S3Uploader.cs" />
     <Compile Include="DiscordTools\Assets\Uploader\ImgurUploader.cs" />
     <Compile Include="DiscordTools\Assets\Uploader\ResizingUploader.cs" />
     <Compile Include="DiscordTools\Assets\UploadResult.cs" />
@@ -106,6 +107,9 @@
     <Compile Include="ImgurClient\ImgurAuthenticator.cs" />
     <Compile Include="ImgurClient\ImgurClient.cs" />
     <Compile Include="ImgurClient\Types\ImgurResponse.cs" />
+    <Compile Include="S3Client\S3Client.cs" />
+    <Compile Include="S3Client\S3Config.cs" />
+    <Compile Include="S3Client\Types\S3Image.cs" />
     <Compile Include="SortableBindingList.cs" />
     <Compile Include="LayoutHandler.cs" />
     <Compile Include="MusicBeeInterface.cs" />
@@ -118,6 +122,12 @@
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="UI\S3SettingsWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\S3SettingsWindow.Designer.cs">
+      <DependentUpon>S3SettingsWindow.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\SettingsWindow.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -163,6 +173,9 @@
     <EmbeddedResource Include="UI\PlaceholderTableWindow.resx">
       <DependentUpon>PlaceholderTableWindow.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="UI\S3SettingsWindow.resx">
+      <DependentUpon>S3SettingsWindow.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UI\SettingsWindow.resx">
       <DependentUpon>SettingsWindow.cs</DependentUpon>
     </EmbeddedResource>
@@ -171,6 +184,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="AWSSDK.S3">
+      <Version>3.7.305.22</Version>
+    </PackageReference>
     <PackageReference Include="DiscordRichPresence">
       <Version>1.1.3.18</Version>
     </PackageReference>
